@@ -187,7 +187,10 @@ if __name__ == "__main__":
     
     python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_no_contact.pkl --log-path sysid_logs/opt_results_no_contact.txt --robot google_robot_static
     python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_with_contact.pkl --log-path sysid_logs/opt_results_with_contact2.txt --robot google_robot_static
-    python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_pick_place_no_contact.pkl --log-path sysid_logs/opt_results_pick_place_no_contact_A.txt --robot google_robot_static
+    python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_pick_place_no_contact.pkl --log-path sysid_logs/opt_results_pick_place_no_contact_A.txt --subset A --robot google_robot_static
+    python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_pick_place_no_contact.pkl --log-path sysid_logs/opt_results_pick_place_no_contact_B.txt --subset B --robot google_robot_static
+    python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_pick_place_with_contact.pkl --log-path sysid_logs/opt_results_pick_place_with_contact_A.txt --subset A --robot google_robot_static
+    python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_pick_place_with_contact.pkl --log-path sysid_logs/opt_results_pick_place_with_contact_B.txt --subset B --robot google_robot_static
     """
 
     os.environ["DISPLAY"] = ""
@@ -197,6 +200,8 @@ if __name__ == "__main__":
     parser.add_argument("--log-path", type=str, default="sysid_log/opt_results_google_robot.txt")
     parser.add_argument("--robot", type=str, default="google_robot_static")
     parser.add_argument("--eval", action="store_true")
+    parser.add_argument("--eval-no-contact", action="store_true")
+    parser.add_argument("--subset", type=str)
     args = parser.parse_args()
 
     if args.eval:
@@ -222,6 +227,13 @@ if __name__ == "__main__":
             per_traj_err = obtain_arr(line[-1].strip())
             results.append((avg_err, (arm_stiffness, arm_damping), misc, per_traj_err))
 
+        if args.eval_no_contact:
+            with open("sysid_logs/sysid_dataset_eval_no_contact.pkl", "rb") as f:
+                dset = pickle.load(f)
+        else:
+            with open("sysid_logs/sysid_dataset_eval.pkl", "rb") as f:
+                dset = pickle.load(f)
+            
         results = sorted(results, key=lambda x: x[0])
         for result in results[:3]:
             # result = results[0]
@@ -229,15 +241,18 @@ if __name__ == "__main__":
             arm_damping = result[1][1]
             print(f"Avg error: {result[0]}; Arm stiffness: {arm_stiffness}; Arm damping: {arm_damping}; Misc: {result[2]}; Per traj error: {result[3]}")
 
-            with open("sysid_logs/sysid_dataset_eval.pkl", "rb") as f:
-            # with open("sysid_logs/sysid_dataset_eval_no_contact.pkl", "rb") as f:
-                dset = pickle.load(f)
             control_mode = "arm_pd_ee_delta_pose_align_interpolate_by_planner_gripper_pd_joint_pos"
             calc_pose_err(dset, arm_stiffness, arm_damping, args.robot, control_mode, log_path=args.log_path.replace(".txt", "_eval.txt"))
         exit()
 
     with open(args.dataset_path, "rb") as f:
         dset = pickle.load(f)
+    if args.subset == "A":
+        print("Using subset A")
+        dset = dset[0:20]
+    elif args.subset == "B":
+        print("Using subset B")
+        dset = dset[20:40]
 
     if args.robot == "google_robot_static":
         control_mode = "arm_pd_ee_delta_pose_align_interpolate_by_planner_gripper_pd_joint_pos"
