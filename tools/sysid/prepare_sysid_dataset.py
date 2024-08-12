@@ -25,10 +25,64 @@ def dataset2path(dataset_name):
     return f"gs://gresearch/robotics/{dataset_name}/{version}"
 
 
+FRACTAL_CLIP_RATIO = [
+    6 / 22,
+    5 / 13,
+    2 / 4,
+    1 / 4,
+    2 / 7,
+    6 / 12,
+    3 / 7,
+    7 / 17,
+    3 / 9,
+    2 / 7,
+    3 / 5,
+    2 / 4,
+    2 / 5,
+    4 / 8,
+    3 / 10,
+    2 / 13,
+    3 / 12,
+    1 / 8,
+    2 / 7,
+    4 / 10,
+    1 / 4,
+    5 / 9,
+    1 / 5,
+    9 / 13,
+    2 / 5,
+    3 / 8,
+    1.5 / 8,
+    2.5 / 7,
+    3 / 5,
+    4 / 8,
+    3 / 8,
+    1 / 7,
+    2 / 8,
+    3 / 9,
+    6 / 9,
+    2 / 9,
+    2 / 3,
+    3 / 8,
+    1.5 / 7,
+    1.5 / 6,
+    2 / 4,
+    2 / 7,
+    1 / 4,
+    6 / 12,
+    1.5 / 7,
+    3 / 9,
+    3 / 9,
+    5 / 11,
+    2 / 15,
+    6 / 14,
+]
+
 if __name__ == "__main__":
     """
     python tools/sysid/prepare_sysid_dataset.py --save-path /home/xuanlin/Downloads/sysid_dataset.pkl --dataset-name fractal20220817_data
     python tools/sysid/prepare_sysid_dataset.py --save-path /home/xuanlin/Downloads/sysid_dataset_bridge.pkl --dataset-name bridge
+    python tools/sysid/prepare_sysid_dataset.py --save-path sysid_logs/sysid_dataset.pkl --dataset-name fractal20220817_data
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--save-path", type=str, default="/home/xuanlin/Downloads/sysid_dataset.pkl")
@@ -44,18 +98,31 @@ if __name__ == "__main__":
     iter_episode_id = -1
     if dataset_name == "fractal20220817_data":
         # episode_ids = [2, 4, 5, 9, 11, 805, 1257, 1495, 1539, 1991, 2398, 3289]
+        # episode_ids = [
+        #     2,
+        #     4,
+        #     5,
+        #     9,
+        #     11,
+        #     14,
+        #     28,
+        #     34,
+        #     36,
+        #     37,
+        #     38,
+        #     805,
+        #     1257,
+        #     1495,
+        #     1539,
+        #     1991,
+        #     2398,
+        #     3289,
+        # ]
+        # episode_ids = list(range(50))
         episode_ids = [
-            2,
-            4,
-            5,
-            9,
-            11,
-            14,
-            28,
-            34,
-            36,
-            37,
-            38,
+            50,
+            52,
+            53,
             805,
             1257,
             1495,
@@ -64,6 +131,7 @@ if __name__ == "__main__":
             2398,
             3289,
         ]
+
     elif dataset_name == "bridge":
         episode_ids = list(range(12))
     else:
@@ -75,13 +143,32 @@ if __name__ == "__main__":
         episode = next(dset_iter)
         if iter_episode_id not in episode_ids:
             continue
+        
+        print(f"Processing episode {iter_episode_id}")
+        
+        # # Clip the episode to contact-free
+        # clip_ratio = FRACTAL_CLIP_RATIO[iter_episode_id]
+        # clip_length = int(clip_ratio * len(episode["steps"]))
 
         to_save = []
         episode_steps = list(episode["steps"])
+
+        # # Skip fridge and drawer tasks
+        # instruction = episode_steps[0]["observation"]["natural_language_instruction"].numpy().decode("utf-8")
+        # # print(instruction)
+        # if "fridge" in instruction or ("close" in instruction and "drawer" in instruction) or ("open" in instruction and "drawer" in instruction):
+        #     print(f"Skipping episode {iter_episode_id} with instruction {instruction}")
+        #     continue
+
         for j, episode_step in enumerate(episode_steps):
             if dataset_name == "fractal20220817_data":
                 if j == 0:
                     continue  # skip the first step since during the real data collection process, its action might not be reach the robot in time and be executed by the robot
+                # if j >= clip_length:
+                #     break
+                # if j >= 50:
+                #     print(f"Skipping step {j} in episode {iter_episode_id}")
+                #     break
                 base_pose_tool_reached = episode_step["observation"]["base_pose_tool_reached"]
                 base_pose_tool_reached = np.concatenate(
                     [

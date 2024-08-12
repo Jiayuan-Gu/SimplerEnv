@@ -34,7 +34,8 @@ if __name__ == "__main__":
         results.append((avg_err, (arm_stiffness, arm_damping), misc, per_traj_err))
 
     results = sorted(results, key=lambda x: x[0])
-    for result in results[:10]:
+    # for result in results[:10]:
+    for result in results[:3]:
         print(
             f"Avg error: {result[0]}; Arm stiffness: {result[1][0]}; Arm damping: {result[1][1]}; Misc: {result[2]}; Per traj error: {result[3]}"
         )

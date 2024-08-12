@@ -31,7 +31,8 @@ def calc_pose_err_single_ep(episode, arm_stiffness, arm_damping, robot, control_
     env = gym.make(
         "GraspSingleDummy-v0",
         control_mode=control_mode,
-        obs_mode="rgbd",
+        # obs_mode="rgbd",
+        obs_mode="state",
         robot=robot,
         sim_freq=sim_freq,
         control_freq=control_freq,
@@ -148,7 +149,7 @@ def calc_pose_err(dset, arm_stiffness, arm_damping, robot, control_mode, log_pat
     processes = []
 
     # calculate the pose error for each episode in the dataset in parallel
-    pool = mp.Pool(min(len(dset), 18))
+    pool = mp.Pool(min(len(dset), 10))
     for episode in dset:
         processes.append(
             pool.apply_async(
@@ -261,8 +262,8 @@ if __name__ == "__main__":
         opt_fxn,
         init_action,
         opt_mode="continuous",
-        step_max=2000,
-        t_max=1.5,
+        step_max=1000,
+        t_max=1.5 / 2,
         t_min=0,
         bounds=[[0, 1]] * (len(init_stiffness) * 2),
     )
