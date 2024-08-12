@@ -184,6 +184,10 @@ if __name__ == "__main__":
         --log-path /home/xuanlin/Downloads/opt_results.txt --robot google_robot_static
     python tools/sysid/sysid.py --dataset-path /home/xuanlin/Downloads/sysid_dataset_bridge.pkl \
         --log-path /home/xuanlin/Downloads/opt_results_bridge.txt --robot widowx
+    
+    python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_no_contact.pkl --log-path sysid_logs/opt_results_no_contact.txt --robot google_robot_static
+    python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_with_contact.pkl --log-path sysid_logs/opt_results_with_contact2.txt --robot google_robot_static
+    python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_pick_place_no_contact.pkl --log-path sysid_logs/opt_results_pick_place_no_contact_A.txt --robot google_robot_static
     """
 
     os.environ["DISPLAY"] = ""
@@ -192,7 +196,45 @@ if __name__ == "__main__":
     parser.add_argument("--dataset-path", type=str, default="sysid_log/sysid_dataset.pkl")
     parser.add_argument("--log-path", type=str, default="sysid_log/opt_results_google_robot.txt")
     parser.add_argument("--robot", type=str, default="google_robot_static")
+    parser.add_argument("--eval", action="store_true")
     args = parser.parse_args()
+
+    if args.eval:
+        import re
+        def obtain_arr(s):
+            assert s[0] == "[" and s[-1] == "]", s
+            s = s[1:-1]
+            s = re.split(",? +", s)
+            return [float(x) for x in s]
+        
+        with open(args.log_path, "r") as f:
+            lines = f.readlines()
+
+        results = []
+        for line in lines:
+            line = line.strip()
+            line = line.split(":")
+            line = [x.strip() for x in line]
+            arm_stiffness = obtain_arr(",".join(line[1].split(",")[:-1]))
+            arm_damping = obtain_arr(",".join(line[2].split(",")[:-1]))
+            misc = [eval(line[i].split(",")[0].strip()) for i in range(3, len(line) - 2)]
+            avg_err = eval(line[-2].split(",")[0].strip())
+            per_traj_err = obtain_arr(line[-1].strip())
+            results.append((avg_err, (arm_stiffness, arm_damping), misc, per_traj_err))
+
+        results = sorted(results, key=lambda x: x[0])
+        for result in results[:3]:
+            # result = results[0]
+            arm_stiffness = result[1][0]
+            arm_damping = result[1][1]
+            print(f"Avg error: {result[0]}; Arm stiffness: {arm_stiffness}; Arm damping: {arm_damping}; Misc: {result[2]}; Per traj error: {result[3]}")
+
+            with open("sysid_logs/sysid_dataset_eval.pkl", "rb") as f:
+            # with open("sysid_logs/sysid_dataset_eval_no_contact.pkl", "rb") as f:
+                dset = pickle.load(f)
+            control_mode = "arm_pd_ee_delta_pose_align_interpolate_by_planner_gripper_pd_joint_pos"
+            calc_pose_err(dset, arm_stiffness, arm_damping, args.robot, control_mode, log_path=args.log_path.replace(".txt", "_eval.txt"))
+        exit()
 
     with open(args.dataset_path, "rb") as f:
         dset = pickle.load(f)

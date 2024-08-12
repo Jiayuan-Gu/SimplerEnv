@@ -78,11 +78,26 @@ FRACTAL_CLIP_RATIO = [
     6 / 14,
 ]
 
+FRACTAL_EVAL_CLIP_RATIO = [
+    2 / 5,
+    4 / 12,
+    1.5 / 5,
+    2.5 / 5,
+    2 / 5,
+    3 / 5,
+    2 / 4,
+    1 / 3,
+    2 / 5,
+    2.5 / 8,
+]
+
 if __name__ == "__main__":
     """
     python tools/sysid/prepare_sysid_dataset.py --save-path /home/xuanlin/Downloads/sysid_dataset.pkl --dataset-name fractal20220817_data
     python tools/sysid/prepare_sysid_dataset.py --save-path /home/xuanlin/Downloads/sysid_dataset_bridge.pkl --dataset-name bridge
+    
     python tools/sysid/prepare_sysid_dataset.py --save-path sysid_logs/sysid_dataset.pkl --dataset-name fractal20220817_data
+    python tools/sysid/prepare_sysid_dataset.py --save-path sysid_logs/sysid_dataset_eval_no_contact.pkl --dataset-name fractal20220817_data
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--save-path", type=str, default="/home/xuanlin/Downloads/sysid_dataset.pkl")
@@ -148,7 +163,8 @@ if __name__ == "__main__":
         
         # # Clip the episode to contact-free
         # clip_ratio = FRACTAL_CLIP_RATIO[iter_episode_id]
-        # clip_length = int(clip_ratio * len(episode["steps"]))
+        clip_ratio = FRACTAL_EVAL_CLIP_RATIO[episode_ids.index(iter_episode_id)]
+        clip_length = int(clip_ratio * len(episode["steps"]))
 
         to_save = []
         episode_steps = list(episode["steps"])
@@ -164,8 +180,8 @@ if __name__ == "__main__":
             if dataset_name == "fractal20220817_data":
                 if j == 0:
                     continue  # skip the first step since during the real data collection process, its action might not be reach the robot in time and be executed by the robot
-                # if j >= clip_length:
-                #     break
+                if j >= clip_length:
+                    break
                 # if j >= 50:
                 #     print(f"Skipping step {j} in episode {iter_episode_id}")
                 #     break
