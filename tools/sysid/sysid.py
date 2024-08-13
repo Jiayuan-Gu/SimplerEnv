@@ -141,8 +141,7 @@ def calc_pose_err_single_ep(episode, arm_stiffness, arm_damping, robot, control_
     )
 
 
-def calc_pose_err(dset, arm_stiffness, arm_damping, robot, control_mode, log_path):
-
+def calc_pose_err(dset, arm_stiffness, arm_damping, robot, control_mode, log_path, return_stderr=False):
     errs = []
     raw_transl_errs = []
     raw_rot_errs = []
@@ -166,11 +165,16 @@ def calc_pose_err(dset, arm_stiffness, arm_damping, robot, control_mode, log_pat
     pool.join()
 
     avg_err = np.mean(errs)
+    std_err = np.std(errs)
     avg_raw_transl_err = np.mean(raw_transl_errs)
     avg_raw_rot_err = np.mean(raw_rot_errs)
 
     # log the results
     print_info = f"arm_stiffness: {list(arm_stiffness)}, arm_damping: {list(arm_damping)}, avg_raw_transl_err: {avg_raw_transl_err}, avg_raw_rot_err: {avg_raw_rot_err}, avg_err: {avg_err}, per_traj_err: {errs}"
+    
+    if return_stderr:
+        print_info += f", std_err: {std_err}"
+
     with open(log_path, "a") as f:
         print(print_info, file=f)
     print(print_info)
@@ -242,7 +246,7 @@ if __name__ == "__main__":
             print(f"Avg error: {result[0]}; Arm stiffness: {arm_stiffness}; Arm damping: {arm_damping}; Misc: {result[2]}; Per traj error: {result[3]}")
 
             control_mode = "arm_pd_ee_delta_pose_align_interpolate_by_planner_gripper_pd_joint_pos"
-            calc_pose_err(dset, arm_stiffness, arm_damping, args.robot, control_mode, log_path=args.log_path.replace(".txt", "_eval.txt"))
+            calc_pose_err(dset, arm_stiffness, arm_damping, args.robot, control_mode, log_path=args.log_path.replace(".txt", "_eval.txt"), return_stderr=True)
         exit()
 
     with open(args.dataset_path, "rb") as f:
