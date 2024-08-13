@@ -25,6 +25,7 @@ def dataset2path(dataset_name):
     return f"gs://gresearch/robotics/{dataset_name}/{version}"
 
 
+# For optimization on first 50 episodes
 FRACTAL_CLIP_RATIO = [
     6 / 22,
     5 / 13,
@@ -78,7 +79,7 @@ FRACTAL_CLIP_RATIO = [
     6 / 14,
 ]
 
-FRACTAL_EVAL_CLIP_RATIO = [
+FRACTAL_VAL_CLIP_RATIO = [
     2 / 5,
     4 / 12,
     1.5 / 5,
@@ -90,6 +91,66 @@ FRACTAL_EVAL_CLIP_RATIO = [
     2 / 5,
     2.5 / 8,
 ]
+
+# For optimization on more 50 episodes
+EPISODE_IDS2 = list(range(100, 152))
+FRACTAL_CLIP_RATIO2 = [
+    None,
+    1 / 5,
+    3 / 10,
+    3 / 5,
+    3 / 9,
+    2 / 8,
+    3 / 6,
+    2.5 / 5,
+    2 / 8,
+    2 / 14,
+    3 / 9,
+    2 / 7,
+    3 / 13,
+    3 / 9,
+    1 / 4,
+    1.5 / 7,
+    1.5 / 5,
+    4 / 12,
+    2 / 5,
+    1 / 6,
+    4 / 10,
+    1 / 4,
+    1.5 / 10,
+    3 / 8,
+    0.5 / 4,
+    None,
+    3 / 7,
+    3 / 8,
+    2.5 / 5,
+    2 / 6,
+    1 / 3,
+    2 / 8,
+    2 / 8,
+    3.5 / 10,
+    1 / 4,
+    2 / 7,
+    2 / 6,
+    2 / 4,
+    1.5 / 5,
+    3 / 7,
+    2 / 7,
+    1 / 2,
+    1 / 8,
+    3 / 6,
+    3 / 12,
+    3 / 9,
+    6 / 14,
+    1 / 8,
+    3 / 16,
+    2 / 8,
+    2 / 6,
+    1 / 5,
+]
+EPISODE_IDS2 = EPISODE_IDS2[1:25] + EPISODE_IDS2[26:]
+FRACTAL_CLIP_RATIO2 = FRACTAL_CLIP_RATIO2[1:25] + FRACTAL_CLIP_RATIO2[26:]
+
 
 if __name__ == "__main__":
     """
@@ -133,19 +194,26 @@ if __name__ == "__main__":
         #     2398,
         #     3289,
         # ]
+
+        # Optimization
         # episode_ids = list(range(50))
-        episode_ids = [
-            50,
-            52,
-            53,
-            805,
-            1257,
-            1495,
-            1539,
-            1991,
-            2398,
-            3289,
-        ]
+
+        # Validation
+        # episode_ids = [
+        #     50,
+        #     52,
+        #     53,
+        #     805,
+        #     1257,
+        #     1495,
+        #     1539,
+        #     1991,
+        #     2398,
+        #     3289,
+        # ]
+
+        episode_ids = list(range(50)) + EPISODE_IDS2
+        clip_ratios = FRACTAL_CLIP_RATIO + FRACTAL_CLIP_RATIO2
 
     elif dataset_name == "bridge":
         episode_ids = list(range(12))
@@ -161,10 +229,11 @@ if __name__ == "__main__":
         
         print(f"Processing episode {iter_episode_id}")
         
-        # # Clip the episode to contact-free
+        # Clip the episode to contact-free
         # clip_ratio = FRACTAL_CLIP_RATIO[iter_episode_id]
-        clip_ratio = FRACTAL_EVAL_CLIP_RATIO[episode_ids.index(iter_episode_id)]
-        clip_length = int(clip_ratio * len(episode["steps"]))
+        # clip_ratio = FRACTAL_VAL_CLIP_RATIO[episode_ids.index(iter_episode_id)]
+        # clip_ratio = clip_ratios[episode_ids.index(iter_episode_id)]
+        # clip_length = int(clip_ratio * len(episode["steps"]))
 
         to_save = []
         episode_steps = list(episode["steps"])
@@ -180,11 +249,11 @@ if __name__ == "__main__":
             if dataset_name == "fractal20220817_data":
                 if j == 0:
                     continue  # skip the first step since during the real data collection process, its action might not be reach the robot in time and be executed by the robot
-                if j >= clip_length:
-                    break
-                # if j >= 50:
-                #     print(f"Skipping step {j} in episode {iter_episode_id}")
+                # if j >= clip_length:
                 #     break
+                if j >= 50:
+                    print(f"Skipping step {j} in episode {iter_episode_id}")
+                    break
                 base_pose_tool_reached = episode_step["observation"]["base_pose_tool_reached"]
                 base_pose_tool_reached = np.concatenate(
                     [

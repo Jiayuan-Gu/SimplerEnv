@@ -195,6 +195,8 @@ if __name__ == "__main__":
     python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_pick_place_no_contact.pkl --log-path sysid_logs/opt_results_pick_place_no_contact_B.txt --subset B --robot google_robot_static
     python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_pick_place_with_contact.pkl --log-path sysid_logs/opt_results_pick_place_with_contact_A.txt --subset A --robot google_robot_static
     python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_pick_place_with_contact.pkl --log-path sysid_logs/opt_results_pick_place_with_contact_B.txt --subset B --robot google_robot_static
+    python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_no_contact_100.pkl --log-path sysid_logs/opt_results_no_contact_100.txt --robot google_robot_static
+    python tools/sysid/sysid.py --dataset-path sysid_logs/sysid_dataset_with_contact_100.pkl --log-path sysid_logs/opt_results_with_contact_100.txt --robot google_robot_static
     """
 
     os.environ["DISPLAY"] = ""

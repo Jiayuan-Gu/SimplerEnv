@@ -69,32 +69,90 @@ def dataset2path(dataset_name):
 #     6 / 14,
 # ]
 
-EPISODE_IDS = [
-    50,
-    # 51,
-    52,
-    53,
-    805,
-    1257,
-    1495,
-    1539,
-    1991,
-    2398,
-    3289,
-]
+# EPISODE_IDS = [
+#     50,
+#     # 51,
+#     52,
+#     53,
+#     805,
+#     1257,
+#     1495,
+#     1539,
+#     1991,
+#     2398,
+#     3289,
+# ]
 
+# FRACTAL_CLIP_RATIO = [
+#     2 / 5,
+#     4 / 12,
+#     1.5 / 5,
+#     2.5 / 5,
+#     2 / 5,
+#     3 / 5,
+#     2 / 4,
+#     1 / 3,
+#     2 / 5,
+#     2.5 / 8,
+# ]
+
+EPISODE_IDS = list(range(100, 152))
 FRACTAL_CLIP_RATIO = [
-    2 / 5,
-    4 / 12,
-    1.5 / 5,
-    2.5 / 5,
-    2 / 5,
+    None,
+    1 / 5,
+    3 / 10,
     3 / 5,
-    2 / 4,
-    1 / 3,
+    3 / 9,
+    2 / 8,
+    3 / 6,
+    2.5 / 5,
+    2 / 8,
+    2 / 14,
+    3 / 9,
+    2 / 7,
+    3 / 13,
+    3 / 9,
+    1 / 4,
+    1.5 / 7,
+    1.5 / 5,
+    4 / 12,
     2 / 5,
-    2.5 / 8,
+    1 / 6,
+    4 / 10,
+    1 / 4,
+    1.5 / 10,
+    3 / 8,
+    0.5 / 4,
+    None,
+    3 / 7,
+    3 / 8,
+    2.5 / 5,
+    2 / 6,
+    1 / 3,
+    2 / 8,
+    2 / 8,
+    3.5 / 10,
+    1 / 4,
+    2 / 7,
+    2 / 6,
+    2 / 4,
+    1.5 / 5,
+    3 / 7,
+    2 / 7,
+    1 / 2,
+    1 / 8,
+    3 / 6,
+    3 / 12,
+    3 / 9,
+    6 / 14,
+    1 / 8,
+    3 / 16,
+    2 / 8,
+    2 / 6,
+    1 / 5,
 ]
+EPISODE_IDS = EPISODE_IDS[1:25] + EPISODE_IDS[26:]
+FRACTAL_CLIP_RATIO = FRACTAL_CLIP_RATIO[1:25] + FRACTAL_CLIP_RATIO[26:]
 
 
 if __name__ == "__main__":
@@ -102,7 +160,8 @@ if __name__ == "__main__":
     dset = tfds.builder_from_directory(builder_dir=dataset2path(dataset_name))
 
     # dset = dset.as_dataset(split="train[:50]", read_config=tfds.ReadConfig(add_tfds_id=True))
-    dset = dset.as_dataset(split="train[:4000]", read_config=tfds.ReadConfig(add_tfds_id=True))
+    # dset = dset.as_dataset(split="train[:4000]", read_config=tfds.ReadConfig(add_tfds_id=True))
+    dset = dset.as_dataset(split="train[:160]", read_config=tfds.ReadConfig(add_tfds_id=True))
     dset = list(dset)
     for i, episode in enumerate(dset):
         if i not in EPISODE_IDS:
@@ -115,8 +174,9 @@ if __name__ == "__main__":
         # for j in range(0, int(FRACTAL_CLIP_RATIO[i] * len(episode_steps))):
         for j in range(0, int(FRACTAL_CLIP_RATIO[EPISODE_IDS.index(i)] * len(episode_steps))):
             gt_images.append(episode_steps[j]["observation"]["image"])
-        # write_video(f"{dataset_name}_vis/{i}_gt.mp4", gt_images, fps=5)
-        write_video(f"{dataset_name}_vis_eval/{i}_gt.mp4", gt_images, fps=5)
+        write_video(f"{dataset_name}_vis/{i}_gt.mp4", gt_images, fps=5)
+        # write_video(f"{dataset_name}_vis_full/{i}_gt.mp4", gt_images, fps=5)
+        # write_video(f"{dataset_name}_vis_eval/{i}_gt.mp4", gt_images, fps=5)
 
         # from matplotlib import pyplot as plt
 
